@@ -12,7 +12,7 @@ public class AlertRabbit {
 
     private static int getPeriodFromProperties() {
         String period = "";
-        try (FileReader reader = new FileReader(".\\rabbit.properties");) {
+        try (FileReader reader = new FileReader("./rabbit.properties");) {
             Properties properties = new Properties();
             properties.load(reader);
             period = properties.getProperty("rabbit.interval");
