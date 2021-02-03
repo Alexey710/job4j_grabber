@@ -18,7 +18,7 @@ public class AlertRabbit2 {
 
     private static Connection connectDB() throws ClassNotFoundException, SQLException {
         Connection connection = null;
-        try (FileReader reader = new FileReader(".\\rabbit.properties")) {
+        try (FileReader reader = new FileReader("./rabbit.properties")) {
             Properties properties = new Properties();
             properties.load(reader);
             Class.forName(properties.getProperty("driver-class-name"));
