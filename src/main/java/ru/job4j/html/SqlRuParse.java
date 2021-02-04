@@ -12,8 +12,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-public class SqlRuParse {
-    private static Map<String, String> map = new HashMap<>();
+public class SqlRuParse implements Parse {
+    private int number;
+    private Map<String, String> map = new HashMap<>();
 
     {
         map.put("янв", "01");
@@ -30,7 +31,11 @@ public class SqlRuParse {
         map.put("дек", "12");
     }
 
-    private static LocalDateTime stringToDateTime(String input) throws ParseException {
+    public SqlRuParse(int number) {
+        this.number = number;
+    }
+
+    private LocalDateTime stringToDateTime(String input) throws ParseException {
         String[] arr = input.split(" ");
         if (arr[0].equals("сегодня,")) {
             LocalDate now = LocalDate.now();
@@ -53,50 +58,74 @@ public class SqlRuParse {
         return LocalDateTime.parse(dateEng, formatter);
     }
 
-    public static void parseOnePage(String url, String query, String query2)
+    public List<Post> parseOnePage(String url, String query, String query2)
             throws ParseException, IOException {
+        List<Post> postsOnePage = new LinkedList<>();
         Document doc = Jsoup.connect(url).get();
         Elements row = doc.select(query);
         for (Element td : row) {
             Element href = td.child(0);
-            System.out.println(href.text());
-            getContentPostAndDate(href.attr("href"));
-            System.out.println(href.attr("href"));
-            System.out.println("-------------");
+            Post post = detail(href.attr("href"));
+            post.setTitle(href.text());
+            postsOnePage.add(post);
         }
-
+        return postsOnePage;
     }
 
-    public static void parsePages(String url, String query, String query2, int number)
-            throws IOException, ParseException {
+    @Override
+    public List<Post> list(String link) {
+        List<Post> posts = new LinkedList<>();
         for (int i = 1; i <= number; i++) {
-            String urlPage = String.format("%s%s%s", url, "/", i);
-            parseOnePage(urlPage, query, query2);
+            String urlPage = String.format("%s%s%s", link, "/", i);
+            try {
+                posts.addAll(parseOnePage(urlPage, ".postslisttopic", "altCol"));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+        return posts;
     }
 
-    public static void getContentPostAndDate(String url) throws IOException, ParseException {
-        Document doc = Jsoup.connect(url).get();
-        Elements row = doc.getElementsByClass("msgBody");
-        Elements row2 = doc.getElementsByClass("msgFooter");
-        int index = 0;
-        for (Element td : row) {
-            if (index == 1) {
-                System.out.println(td.text());
+    @Override
+    public Post detail(String link) {
+        LocalDateTime date = null;
+        String content = null;
+        try {
+            Document doc = Jsoup.connect(link).get();
+            Elements row = doc.getElementsByClass("msgBody");
+            Elements row2 = doc.getElementsByClass("msgFooter");
+            int index = 0;
+            for (Element td : row) {
+                if (index == 1) {
+                    content = td.text();
+                    break;
+                }
+                index++;
+            }
+            for (Element td : row2) {
+                String[] arr = td.text().split(" \\[");
+                try {
+                    date = stringToDateTime(arr[0]);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
                 break;
             }
-            index++;
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        for (Element td : row2) {
-            String[] arr = td.text().split(" \\[");
-                System.out.println(stringToDateTime(arr[0]));
-                break;
-        }
+        return new Post(link, content, date);
     }
 
-    public static void main(String[] args) throws Exception {
-        new SqlRuParse();
-        parsePages("https://www.sql.ru/forum/job-offers", ".postslisttopic", "altCol", 5);
-
+    public static void main(String[] args) {
+        SqlRuParse sqlRuParse = new SqlRuParse(5);
+        List<Post> rsl = sqlRuParse.list("https://www.sql.ru/forum/job-offers");
+        int d = 0;
+        for (Post elem : rsl) {
+            System.out.println(elem);
+            System.out.println(d++);
+        }
     }
 }
