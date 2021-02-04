@@ -57,20 +57,10 @@ public class SqlRuParse {
             throws ParseException, IOException {
         Document doc = Jsoup.connect(url).get();
         Elements row = doc.select(query);
-        Elements row2 = doc.getElementsByClass(query2);
-        List<LocalDateTime> dates = new LinkedList<>();
-        int index = 0;
-        for (Element td : row2) {
-            if (index % 2 > 0) {
-                dates.add(stringToDateTime(td.text()));
-            }
-            index++;
-        }
-        index = 0;
         for (Element td : row) {
             Element href = td.child(0);
-            System.out.println(dates.get(index++));
             System.out.println(href.text());
+            getContentPostAndDate(href.attr("href"));
             System.out.println(href.attr("href"));
             System.out.println("-------------");
         }
@@ -83,7 +73,25 @@ public class SqlRuParse {
             String urlPage = String.format("%s%s%s", url, "/", i);
             parseOnePage(urlPage, query, query2);
         }
+    }
 
+    public static void getContentPostAndDate(String url) throws IOException, ParseException {
+        Document doc = Jsoup.connect(url).get();
+        Elements row = doc.getElementsByClass("msgBody");
+        Elements row2 = doc.getElementsByClass("msgFooter");
+        int index = 0;
+        for (Element td : row) {
+            if (index == 1) {
+                System.out.println(td.text());
+                break;
+            }
+            index++;
+        }
+        for (Element td : row2) {
+            String[] arr = td.text().split(" \\[");
+                System.out.println(stringToDateTime(arr[0]));
+                break;
+        }
     }
 
     public static void main(String[] args) throws Exception {
