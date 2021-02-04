@@ -4,6 +4,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+
+import java.io.IOException;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -51,11 +53,11 @@ public class SqlRuParse {
         return LocalDateTime.parse(dateEng, formatter);
     }
 
-    public static void main(String[] args) throws Exception {
-        new SqlRuParse();
-        Document doc = Jsoup.connect("https://www.sql.ru/forum/job-offers").get();
-        Elements row = doc.select(".postslisttopic");
-        Elements row2 = doc.getElementsByClass("altCol");
+    public static void parseOnePage(String url, String query, String query2)
+            throws ParseException, IOException {
+        Document doc = Jsoup.connect(url).get();
+        Elements row = doc.select(query);
+        Elements row2 = doc.getElementsByClass(query2);
         List<LocalDateTime> dates = new LinkedList<>();
         int index = 0;
         for (Element td : row2) {
@@ -72,5 +74,21 @@ public class SqlRuParse {
             System.out.println(href.attr("href"));
             System.out.println("-------------");
         }
+
+    }
+
+    public static void parsePages(String url, String query, String query2, int number)
+            throws IOException, ParseException {
+        for (int i = 1; i <= number; i++) {
+            String urlPage = String.format("%s%s%s", url, "/", i);
+            parseOnePage(urlPage, query, query2);
+        }
+
+    }
+
+    public static void main(String[] args) throws Exception {
+        new SqlRuParse();
+        parsePages("https://www.sql.ru/forum/job-offers", ".postslisttopic", "altCol", 5);
+
     }
 }
