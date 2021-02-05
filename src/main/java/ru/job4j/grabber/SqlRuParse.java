@@ -95,24 +95,12 @@ public class SqlRuParse implements Parse {
             Document doc = Jsoup.connect(link).get();
             Elements row = doc.getElementsByClass("msgBody");
             Elements row2 = doc.getElementsByClass("msgFooter");
-            int index = 0;
-            for (Element td : row) {
-                if (index == 1) {
-                    content = td.text();
-                    break;
-                }
-                index++;
-            }
-            for (Element td : row2) {
-                String[] arr = td.text().split(" \\[");
-                try {
-                    date = stringToDateTime(arr[0]);
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                break;
-            }
+            content = String.valueOf(row.get(1).text());
+            String s = String.valueOf(row2.get(0)).split("&")[0].split("> ")[1];
+            date = stringToDateTime(s);
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
             e.printStackTrace();
         }
         return new Post(link, content, date);
