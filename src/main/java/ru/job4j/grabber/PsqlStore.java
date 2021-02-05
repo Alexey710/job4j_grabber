@@ -3,9 +3,6 @@ package ru.job4j.grabber;
 import java.io.InputStream;
 import java.sql.*;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -51,8 +48,8 @@ public class PsqlStore implements Store, AutoCloseable {
             statement.setString(1, post.getTitle());
             statement.setString(2, post.getContent());
             statement.setString(3, post.getUrl());
-            Date date = Date.valueOf(post.getDate().toLocalDate());
-            statement.setDate(4, date);
+            Timestamp date = Timestamp.valueOf(post.getDate());
+            statement.setTimestamp(4, date);
             String print = statement.execute() ? "Post is NOT added" : "Post is added.";
             System.out.println(print);
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {

@@ -9,6 +9,12 @@ public class Post {
     private String content;
     private LocalDateTime date;
 
+    public Post(String url, String content, LocalDateTime date) {
+        this.url = url;
+        this.content = content;
+        this.date = date;
+    }
+
     public Post(String title, String url, String content, LocalDateTime date) {
         this.title = title;
         this.url = url;
